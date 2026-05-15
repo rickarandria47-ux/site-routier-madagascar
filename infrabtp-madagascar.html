@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InfraBTP Madagascar – Construction Routière d'Excellence</title>
+  <meta name="description" content="InfraBTP Madagascar, leader en construction et réhabilitation routière à Madagascar. Routes, ponts, ouvrages d'art, infrastructures publiques." />
+  <meta name="keywords" content="construction routière Madagascar, BTP Madagascar, routes ponts ouvrages, génie civil Antananarivo" />
+  <meta property="og:title" content="InfraBTP Madagascar" />
+  <meta property="og:description" content="Leader en construction routière et infrastructures à Madagascar." />
+  <meta property="og:type" content="website" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet" />
+  <!-- Leaflet for map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* =============================================
+       CSS VARIABLES & RESET
+    ============================================= */
+    :root {
+      --orange: #F26522;
+      --orange-dark: #C94E0A;
+      --orange-light: #FF8C42;
+      --orange-glow: rgba(242,101,34,0.18);
+      --grey-900: #111214;
+      --grey-800: #1A1C20;
+      --grey-700: #26292F;
+      --grey-600: #3A3E47;
+      --grey-400: #8C919C;
+      --grey-200: #D1D5DB;
+      --grey-100: #F3F4F6;
+      --white: #FFFFFF;
+      --bg: var(--white);
+      --bg2: var(--grey-100);
+      --text: var(--grey-900);
+      --text-muted: var(--grey-400);
+      --card-bg: var(--white);
+      --nav-bg: rgba(255,255,255,0.96);
+      --border: rgba(0,0,0,0.08);
+      --shadow: 0 4px 32px rgba(0,0,0,0.10);
+      --radius: 12px;
+      --transition: 0.32s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+      --bg: var(--grey-900);
+      --bg2: var(--grey-800);
+      --text: #F0F2F5;
+      --text-muted: #8C919C;
+      --card-bg: var(--grey-700);
+      --nav-bg: rgba(17,18,20,0.97);
+      --border: rgba(255,255,255,0.07);
+      --shadow: 0 4px 32px rgba(0,0,0,0.45);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background var(--transition), color var(--transition);
+      overflow-x: hidden;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+
+    /* =============================================
+       SCROLLBAR
+    ============================================= */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 3px; }
+
+    /* =============================================
+       UTILITY
+    ============================================= */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .section { padding: 100px 0; }
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--orange); font-weight: 700; margin-bottom: 16px;
+    }
+    .section-tag::before { content: ''; width: 28px; height: 2px; background: var(--orange); }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.4rem, 5vw, 4rem);
+      line-height: 1; color: var(--text); margin-bottom: 20px;
+    }
+    .section-subtitle { font-size: 1.08rem; color: var(--text-muted); max-width: 560px; line-height: 1.7; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: .95rem;
+      transition: all var(--transition); position: relative; overflow: hidden;
+    }
+    .btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(255,255,255,0.12); opacity: 0; transition: opacity var(--transition);
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn-primary {
+      background: var(--orange); color: var(--white);
+      box-shadow: 0 4px 20px rgba(242,101,34,0.4);
+    }
+    .btn-primary:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(242,101,34,0.5); }
+    .btn-outline {
+      border: 2px solid var(--orange); color: var(--orange);
+    }
+    .btn-outline:hover { background: var(--orange); color: var(--white); transform: translateY(-2px); }
+    .btn-ghost { color: var(--text); padding: 14px 20px; }
+    .btn-ghost:hover { color: var(--orange); }
+
+    /* Reveal animations */
+    .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal-left.visible { opacity: 1; transform: translateX(0); }
+    .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+    /* =============================================
+       NAVBAR
+    ============================================= */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      background: var(--nav-bg); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+    #navbar.scrolled { box-shadow: 0 2px 24px rgba(0,0,0,0.12); }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 72px; gap: 20px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .nav-logo-icon {
+      width: 42px; height: 42px; background: var(--orange);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue'; color: var(--white); font-size: 1.3rem; letter-spacing: 1px;
+    }
+    .nav-logo-text { font-family: 'Bebas Neue'; font-size: 1.5rem; letter-spacing: 2px; line-height: 1; }
+    .nav-logo-sub { font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+    .nav-links {
+      display: flex; align-items: center; gap: 4px; list-style: none;
+    }
+    .nav-links a {
+      padding: 8px 14px; border-radius: 6px; font-size: .9rem; font-weight: 600;
+      transition: color var(--transition), background var(--transition);
+      color: var(--text-muted);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--orange); background: var(--orange-glow); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    #darkToggle {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--bg2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; transition: all var(--transition);
+    }
+    #darkToggle:hover { background: var(--orange); color: var(--white); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; width: 36px; height: 36px; align-items: center; justify-content: center; }
+    .hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all var(--transition); }
+    .mobile-menu {
+      display: none; position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+      background: var(--nav-bg); backdrop-filter: blur(20px); z-index: 999;
+      flex-direction: column; padding: 32px 28px; gap: 8px; overflow-y: auto;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      padding: 16px; border-radius: 8px; font-size: 1.1rem; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-menu a:hover { color: var(--orange); background: var(--orange-glow); }
+
+    /* =============================================
+       HERO
+    ============================================= */
+    #hero {
+      min-height: 100vh; display: flex; align-items: center; position: relative;
+      overflow: hidden; padding-top: 72px;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        linear-gradient(135deg, rgba(17,18,20,0.92) 0%, rgba(26,28,32,0.75) 50%, rgba(17,18,20,0.88) 100%),
+        url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80') center/cover no-repeat;
+    }
+    .hero-grid-overlay {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(242,101,34,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(242,101,34,0.04) 1px, transparent 1px);
+      background-size: 60px 60px; z-index: 1;
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 780px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(242,101,34,0.15); border: 1px solid rgba(242,101,34,0.4);
+      padding: 8px 18px; border-radius: 100px; margin-bottom: 28px;
+      color: var(--orange-light); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+    }
+    .hero-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange-light); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+    .hero-title {
+      font-family: 'Bebas Neue'; font-size: clamp(3.5rem, 9vw, 8rem);
+      line-height: .95; color: var(--white); margin-bottom: 28px; letter-spacing: 1px;
+    }
+    .hero-title span { color: var(--orange); }
+    .hero-desc { font-size: 1.15rem; color: rgba(255,255,255,0.72); line-height: 1.7; margin-bottom: 40px; max-width: 540px; font-weight: 300; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 60px; }
+    .hero-stats {
+      display: flex; gap: 40px; padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .hero-stat-val {
+      font-family: 'Bebas Neue'; font-size: 2.4rem; color: var(--orange); line-height: 1;
+    }
+    .hero-stat-label { font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 4px; }
+    .hero-scroll {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 2; color: rgba(255,255,255,0.4);
+      font-size: .7rem; letter-spacing: 3px; text-transform: uppercase;
+    }
+    .hero-scroll-line { width: 1px; height: 50px; background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent); animation: scrollLine 2s infinite; }
+    @keyframes scrollLine { 0%{opacity:0;transform:scaleY(0);transform-origin:top} 50%{opacity:1;transform:scaleY(1)} 100%{opacity:0;transform:scaleY(1);transform-origin:bottom} }
+
+    /* =============================================
+       SERVICES TICKER
+    ============================================= */
+    .ticker-wrap {
+      overflow: hidden; background: var(--orange); padding: 14px 0;
+      border-top: 3px solid var(--orange-dark);
+    }
+    .ticker-track {
+      display: flex; gap: 0; white-space: nowrap;
+      animation: ticker 28s linear infinite;
+    }
+    @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .ticker-item {
+      padding: 0 40px; font-family: 'Barlow Condensed'; font-size: 1rem;
+      letter-spacing: 3px; text-transform: uppercase; font-weight: 700; color: var(--white);
+      display: flex; align-items: center; gap: 20px;
+    }
+    .ticker-item::after { content: '◆'; font-size: .5rem; color: rgba(255,255,255,0.5); }
+
+    /* =============================================
+       ABOUT
+    ============================================= */
+    #about { background: var(--bg2); }
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+    }
+    .about-img-wrap { position: relative; }
+    .about-img-main {
+      width: 100%; aspect-ratio: 4/5; object-fit: cover;
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .about-img-badge {
+      position: absolute; bottom: -24px; right: -24px;
+      background: var(--orange); color: var(--white);
+      padding: 24px 28px; border-radius: var(--radius);
+      font-family: 'Bebas Neue'; text-align: center;
+      box-shadow: 0 8px 32px rgba(242,101,34,0.4);
+    }
+    .about-img-badge-num { font-size: 3rem; line-height: 1; }
+    .about-img-badge-text { font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; opacity: .85; }
+    .about-highlight {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px;
+    }
+    .about-highlight-item {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px; transition: border-color var(--transition);
+    }
+    .about-highlight-item:hover { border-color: var(--orange); }
+    .about-highlight-icon { font-size: 1.6rem; margin-bottom: 10px; }
+    .about-highlight-title { font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
+    .about-highlight-text { font-size: .8rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* =============================================
+       SERVICES
+    ============================================= */
+    #services { background: var(--bg); }
+    .services-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 64px; flex-wrap: wrap; gap: 24px; }
+    .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .service-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px 30px;
+      transition: all var(--transition); position: relative; overflow: hidden;
+    }
+    .service-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--orange); transform: scaleX(0); transition: transform var(--transition);
+    }
+    .service-card:hover { box-shadow: var(--shadow); transform: translateY(-6px); border-color: var(--orange); }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-num {
+      font-family: 'Bebas Neue'; font-size: 4rem; color: var(--orange);
+      opacity: .12; position: absolute; top: 12px; right: 20px; line-height: 1;
+    }
+    .service-icon {
+      width: 56px; height: 56px; background: var(--orange-glow);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin-bottom: 20px; border: 1px solid rgba(242,101,34,0.2);
+    }
+    .service-title { font-family: 'Barlow Condensed'; font-size: 1.35rem; font-weight: 700; margin-bottom: 12px; }
+    .service-desc { font-size: .88rem; color: var(--text-muted); line-height: 1.7; }
+    .service-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--orange); font-size: .85rem; font-weight: 700;
+      margin-top: 20px; transition: gap var(--transition);
+    }
+    .service-link:hover { gap: 12px; }
+
+    /* =============================================
+       REALIZATIONS
+    ============================================= */
+    #realisations { background: var(--grey-900); }
+    .real-header { margin-bottom: 48px; }
+    .real-header .section-title { color: var(--white); }
+    .real-filters {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px;
+    }
+    .filter-btn {
+      padding: 8px 20px; border-radius: 100px; font-size: .85rem; font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5);
+      transition: all var(--transition);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--orange); border-color: var(--orange); color: var(--white);
+    }
+    .real-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .real-card {
+      border-radius: var(--radius); overflow: hidden; position: relative;
+      aspect-ratio: 4/3; cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .real-card:first-child { grid-column: span 2; }
+    .real-card:hover { transform: scale(1.02); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .real-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    .real-card:hover img { transform: scale(1.08); }
+    .real-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%);
+      display: flex; flex-direction: column; justify-content: flex-end; padding: 24px;
+      transition: opacity var(--transition);
+    }
+    .real-card-tag {
+      font-size: .7rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--orange-light); margin-bottom: 6px; font-weight: 700;
+    }
+    .real-card-title { font-family: 'Barlow Condensed'; font-size: 1.2rem; font-weight: 700; color: var(--white); }
+    .real-card-loc { font-size: .8rem; color: rgba(255,255,255,0.55); margin-top: 4px; }
+    .real-cta { text-align: center; margin-top: 48px; }
+
+    /* =============================================
+       COUNTER
+    ============================================= */
+    #counters { background: var(--orange); padding: 72px 0; }
+    .counters-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+    .counter-item {
+      text-align: center; padding: 32px 20px;
+      border-right: 1px solid rgba(255,255,255,0.2);
+    }
+    .counter-item:last-child { border-right: none; }
+    .counter-val {
+      font-family: 'Bebas Neue'; font-size: 4rem; color: var(--white); line-height: 1;
+    }
+    .counter-unit { font-family: 'Bebas Neue'; font-size: 2rem; color: rgba(255,255,255,0.7); }
+    .counter-label { font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-top: 8px; }
+
+    /* =============================================
+       MAP
+    ============================================= */
+    #map-section { background: var(--bg2); }
+    .map-wrap { display: grid; grid-template-columns: 1fr 1.6fr; gap: 48px; align-items: center; }
+    #chantier-map { height: 480px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .map-chantiers { display: flex; flex-direction: column; gap: 14px; }
+    .chantier-item {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color var(--transition);
+    }
+    .chantier-item:hover { border-color: var(--orange); }
+    .chantier-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .chantier-dot.green { background: #22C55E; box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+    .chantier-dot.orange { background: var(--orange); box-shadow: 0 0 8px rgba(242,101,34,0.5); }
+    .chantier-dot.yellow { background: #EAB308; box-shadow: 0 0 8px rgba(234,179,8,0.5); }
+    .chantier-info { flex: 1; }
+    .chantier-name { font-weight: 700; font-size: .9rem; }
+    .chantier-loc { font-size: .78rem; color: var(--text-muted); }
+    .chantier-progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px; }
+    .chantier-progress-fill { height: 100%; background: var(--orange); border-radius: 2px; }
+    .chantier-pct { font-family: 'Bebas Neue'; font-size: 1.1rem; color: var(--orange); }
+
+    /* =============================================
+       ACTUALITES
+    ============================================= */
+    #actualites { background: var(--bg); }
+    .news-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
+    .news-featured {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .news-featured-img { width: 100%; height: 300px; object-fit: cover; }
+    .news-featured-body { padding: 32px; }
+    .news-tag {
+      display: inline-block; background: var(--orange-glow); color: var(--orange);
+      padding: 4px 12px; border-radius: 100px; font-size: .75rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .news-title { font-family: 'Barlow Condensed'; font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+    .news-excerpt { font-size: .88rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 20px; }
+    .news-meta { font-size: .78rem; color: var(--text-muted); }
+    .news-sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .news-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; gap: 16px; transition: border-color var(--transition);
+    }
+    .news-card:hover { border-color: var(--orange); }
+    .news-card-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+    .news-card-tag { font-size: .7rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 1px; }
+    .news-card-title { font-weight: 700; font-size: .9rem; margin: 4px 0; line-height: 1.3; }
+    .news-card-date { font-size: .75rem; color: var(--text-muted); }
+
+    /* =============================================
+       PARTENAIRES
+    ============================================= */
+    #partenaires { background: var(--bg2); }
+    .partners-text { text-align: center; margin-bottom: 64px; }
+    .partners-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; align-items: center;
+    }
+    .partner-logo {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px 20px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue'; font-size: 1.2rem; letter-spacing: 2px;
+      color: var(--text-muted); transition: all var(--transition);
+    }
+    .partner-logo:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-4px); box-shadow: var(--shadow); }
+
+    /* =============================================
+       CONTACT
+    ============================================= */
+    #contact { background: var(--bg); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 64px; align-items: start; }
+    .contact-infos { display: flex; flex-direction: column; gap: 24px; margin-top: 32px; }
+    .contact-info-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .contact-info-icon {
+      width: 44px; height: 44px; background: var(--orange-glow);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0; border: 1px solid rgba(242,101,34,0.2);
+    }
+    .contact-info-label { font-size: .75rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .contact-info-val { font-weight: 600; font-size: .95rem; }
+    .contact-form {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block; font-size: .8rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; color: var(--text-muted);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 14px 16px; border-radius: 8px;
+      border: 1.5px solid var(--border); background: var(--bg);
+      color: var(--text); font-family: 'Barlow'; font-size: .95rem;
+      transition: border-color var(--transition);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-glow);
+    }
+    .form-group textarea { resize: vertical; min-height: 120px; }
+    .form-check { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+    .form-check input[type="checkbox"] { accent-color: var(--orange); width: 16px; height: 16px; }
+    .form-check label { font-size: .85rem; color: var(--text-muted); }
+    #formSuccess {
+      display: none; padding: 16px; border-radius: 8px;
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+      color: #22C55E; font-weight: 600; margin-top: 16px; text-align: center;
+    }
+
+    /* =============================================
+       ESPACE PARTENAIRE
+    ============================================= */
+    #espace-partenaire { background: var(--grey-900); padding: 100px 0; }
+    .partenaire-wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; }
+    .partenaire-content .section-title { color: var(--white); }
+    .partenaire-login {
+      background: var(--grey-800); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius); padding: 40px;
+    }
+    .partenaire-login h3 {
+      font-family: 'Barlow Condensed'; font-size: 1.5rem; font-weight: 700;
+      color: var(--white); margin-bottom: 24px;
+    }
+    .partenaire-login .form-group input {
+      background: var(--grey-700); border-color: rgba(255,255,255,0.1); color: var(--white);
+    }
+    .pdf-download-section { margin-top: 32px; }
+    .pdf-download-title { font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+    .pdf-download-list { display: flex; flex-direction: column; gap: 10px; }
+    .pdf-item {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(242,101,34,0.08); border: 1px solid rgba(242,101,34,0.2);
+      border-radius: 8px; padding: 14px 18px; transition: all var(--transition);
+    }
+    .pdf-item:hover { background: rgba(242,101,34,0.15); border-color: var(--orange); }
+    .pdf-item-icon { font-size: 1.2rem; }
+    .pdf-item-name { flex: 1; font-size: .9rem; color: rgba(255,255,255,0.8); font-weight: 600; }
+    .pdf-item-dl {
+      font-size: .75rem; color: var(--orange); font-weight: 700;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    #footer { background: var(--grey-900); border-top: 1px solid rgba(255,255,255,0.06); padding: 72px 0 0; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; padding-bottom: 56px; }
+    .footer-brand p { font-size: .88rem; color: rgba(255,255,255,0.45); line-height: 1.7; margin-top: 20px; max-width: 280px; }
+    .footer-socials { display: flex; gap: 10px; margin-top: 24px; }
+    .social-btn {
+      width: 38px; height: 38px; border-radius: 8px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: rgba(255,255,255,0.5);
+      transition: all var(--transition);
+    }
+    .social-btn:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
+    .footer-col-title {
+      font-family: 'Barlow Condensed'; font-size: 1rem; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 20px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-col ul a { font-size: .88rem; color: rgba(255,255,255,0.4); transition: color var(--transition); }
+    .footer-col ul a:hover { color: var(--orange); }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.06); padding: 24px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: .8rem; color: rgba(255,255,255,0.3);
+    }
+    .footer-bottom span { color: var(--orange); }
+
+    /* =============================================
+       CHATBOT
+    ============================================= */
+    #chatbot-btn {
+      position: fixed; bottom: 28px; right: 28px; z-index: 900;
+      width: 58px; height: 58px; border-radius: 50%;
+      background: var(--orange); box-shadow: 0 6px 24px rgba(242,101,34,0.5);
+      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+      color: var(--white); transition: all var(--transition); animation: chatPulse 3s infinite;
+    }
+    @keyframes chatPulse { 0%,100%{box-shadow:0 6px 24px rgba(242,101,34,0.5)} 50%{box-shadow:0 6px 40px rgba(242,101,34,0.8)} }
+    #chatbot-btn:hover { transform: scale(1.12); }
+    #chatbot-window {
+      display: none; position: fixed; bottom: 100px; right: 28px; z-index: 900;
+      width: 360px; max-height: 520px; border-radius: 16px;
+      background: var(--card-bg); border: 1px solid var(--border);
+      box-shadow: 0 16px 60px rgba(0,0,0,0.3);
+      flex-direction: column; overflow: hidden;
+    }
+    #chatbot-window.open { display: flex; }
+    .chat-header {
+      background: var(--orange); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-header-info { display: flex; align-items: center; gap: 12px; }
+    .chat-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .chat-header-name { font-weight: 700; font-size: .95rem; color: var(--white); }
+    .chat-header-status { font-size: .7rem; color: rgba(255,255,255,0.7); }
+    .chat-close { color: rgba(255,255,255,0.7); font-size: 1.2rem; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background var(--transition); }
+    .chat-close:hover { background: rgba(255,255,255,0.2); color: var(--white); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .chat-msg { max-width: 80%; }
+    .chat-msg.bot { align-self: flex-start; }
+    .chat-msg.user { align-self: flex-end; }
+    .chat-bubble {
+      padding: 12px 16px; border-radius: 14px; font-size: .88rem; line-height: 1.5;
+    }
+    .chat-msg.bot .chat-bubble {
+      background: var(--bg2); color: var(--text); border-bottom-left-radius: 4px;
+    }
+    .chat-msg.user .chat-bubble {
+      background: var(--orange); color: var(--white); border-bottom-right-radius: 4px;
+    }
+    .chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 16px; }
+    .chat-suggestion {
+      padding: 6px 12px; border-radius: 100px; font-size: .78rem; font-weight: 600;
+      border: 1px solid var(--orange); color: var(--orange);
+      transition: all var(--transition);
+    }
+    .chat-suggestion:hover { background: var(--orange); color: var(--white); }
+    .chat-input-wrap {
+      display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--border);
+    }
+    .chat-input {
+      flex: 1; padding: 10px 14px; border-radius: 8px;
+      border: 1.5px solid var(--border); background: var(--bg);
+      color: var(--text); font-family: 'Barlow'; font-size: .9rem;
+    }
+    .chat-input:focus { outline: none; border-color: var(--orange); }
+    .chat-send {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: var(--orange); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .chat-send:hover { background: var(--orange-dark); }
+
+    /* =============================================
+       PROGRESS BAR
+    ============================================= */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: var(--orange); z-index: 9999; width: 0%; transition: width .15s;
+    }
+
+    /* =============================================
+       BACK TO TOP
+    ============================================= */
+    #backToTop {
+      position: fixed; bottom: 28px; left: 28px; z-index: 900;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--card-bg); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--text); opacity: 0; pointer-events: none;
+      transition: all var(--transition); box-shadow: var(--shadow);
+    }
+    #backToTop.visible { opacity: 1; pointer-events: all; }
+    #backToTop:hover { background: var(--orange); color: var(--white); border-color: var(--orange); transform: translateY(-3px); }
+
+    /* =============================================
+       MODAL
+    ============================================= */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card-bg); border-radius: var(--radius);
+      padding: 48px; max-width: 560px; width: 90%; position: relative;
+      animation: modalIn .3s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes modalIn { from{opacity:0;transform:scale(.94) translateY(20px)} to{opacity:1;transform:none} }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px; width: 36px; height: 36px;
+      border-radius: 50%; background: var(--bg2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: var(--orange); color: var(--white); }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 1024px) {
+      .about-grid, .contact-grid, .partenaire-wrap, .map-wrap, .news-grid { grid-template-columns: 1fr; }
+      .services-grid, .real-grid { grid-template-columns: repeat(2, 1fr); }
+      .real-card:first-child { grid-column: span 1; }
+      .partners-grid { grid-template-columns: repeat(3, 1fr); }
+      .counters-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .about-img-badge { right: 12px; bottom: 12px; }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-actions .btn { display: none; }
+      .hamburger { display: flex; }
+      .services-grid, .real-grid { grid-template-columns: 1fr; }
+      .about-highlight { grid-template-columns: 1fr; }
+      .partners-grid { grid-template-columns: repeat(2, 1fr); }
+      .counters-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+      .hero-stats { gap: 24px; flex-wrap: wrap; }
+      .form-row { grid-template-columns: 1fr; }
+      #chatbot-window { width: calc(100vw - 32px); right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PROGRESS BAR -->
+  <div id="progress-bar"></div>
+
+  <!-- BACK TO TOP -->
+  <button id="backToTop" aria-label="Retour en haut">↑</button>
+
+  <!-- ==========================================
+       NAVBAR
+  =========================================== -->
+  <nav id="navbar" role="navigation" aria-label="Navigation principale">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="#hero" class="nav-logo" aria-label="InfraBTP Madagascar accueil">
+          <div class="nav-logo-icon">IB</div>
+          <div>
+            <div class="nav-logo-text">InfraBTP</div>
+            <div class="nav-logo-sub">Madagascar</div>
+          </div>
+        </a>
+
+        <ul class="nav-links" role="list">
+          <li><a href="#hero" class="active">Accueil</a></li>
+          <li><a href="#about">À Propos</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#realisations">Réalisations</a></li>
+          <li><a href="#actualites">Actualités</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <button id="darkToggle" aria-label="Basculer mode sombre">🌙</button>
+          <a href="#espace-partenaire" class="btn btn-primary" style="padding:10px 22px;font-size:.85rem">Espace Partenaire</a>
+          <button class="hamburger" id="hamburger" aria-label="Menu mobile" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Menu mobile">
+    <a href="#hero">🏠 Accueil</a>
+    <a href="#about">🏗️ À Propos</a>
+    <a href="#services">⚙️ Services</a>
+    <a href="#realisations">🏆 Réalisations</a>
+    <a href="#actualites">📰 Actualités</a>
+    <a href="#contact">📞 Contact</a>
+    <a href="#espace-partenaire" style="color:var(--orange)">🔐 Espace Partenaire</a>
+  </div>
+
+  <!-- ==========================================
+       HERO
+  =========================================== -->
+  <section id="hero" aria-label="Bannière principale">
+    <div class="hero-bg" role="img" aria-label="Chantier de construction routière"></div>
+    <div class="hero-grid-overlay"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge" role="status">
+          <span class="hero-badge-dot"></span>
+          Projets en cours · Madagascar 2024–2025
+        </div>
+
+        <h1 class="hero-title">
+          BÂTIR<br>LES ROUTES<br><span>DE DEMAIN</span>
+        </h1>
+
+        <p class="hero-desc">
+          InfraBTP Madagascar est votre partenaire de référence en construction routière, génie civil et réhabilitation d'infrastructures à travers toute l'île.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#realisations" class="btn btn-primary">
+            <span>🏗️</span> Voir nos réalisations
+          </a>
+          <a href="#contact" class="btn btn-outline" style="border-color:rgba(255,255,255,0.4);color:var(--white)">
+            Nous contacter
+          </a>
+          <a href="#" class="btn btn-ghost" style="color:rgba(255,255,255,0.6)" onclick="downloadPDF(event)">
+            ⬇ Brochure PDF
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-val" data-count="28">0</div>
+            <div class="hero-stat-label">Années d'expérience</div>
+          </div>
+          <div>
+            <div class="hero-stat-val" data-count="450">0</div>
+            <div class="hero-stat-label">km de routes réalisées</div>
+          </div>
+          <div>
+            <div class="hero-stat-val" data-count="120">0</div>
+            <div class="hero-stat-label">Projets livrés</div>
+          </div>
+          <div>
+            <div class="hero-stat-val" data-count="18">0</div>
+            <div class="hero-stat-label">Régions couvertes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll" aria-hidden="true">
+      <span>Défiler</span>
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker-track">
+      <span class="ticker-item">Construction routière</span>
+      <span class="ticker-item">Génie civil</span>
+      <span class="ticker-item">Réhabilitation d'ouvrages</span>
+      <span class="ticker-item">Ponts & Viaducs</span>
+      <span class="ticker-item">Assainissement</span>
+      <span class="ticker-item">Terrassement</span>
+      <span class="ticker-item">Voirie urbaine</span>
+      <span class="ticker-item">Infrastructures publiques</span>
+      <!-- Duplicate for seamless loop -->
+      <span class="ticker-item">Construction routière</span>
+      <span class="ticker-item">Génie civil</span>
+      <span class="ticker-item">Réhabilitation d'ouvrages</span>
+      <span class="ticker-item">Ponts & Viaducs</span>
+      <span class="ticker-item">Assainissement</span>
+      <span class="ticker-item">Terrassement</span>
+      <span class="ticker-item">Voirie urbaine</span>
+      <span class="ticker-item">Infrastructures publiques</span>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       À PROPOS
+  =========================================== -->
+  <section id="about" class="section" aria-labelledby="about-title">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-img-wrap reveal-left">
+          <img
+            src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80"
+            alt="Équipe InfraBTP Madagascar sur chantier"
+            class="about-img-main" loading="lazy"
+          />
+          <div class="about-img-badge">
+            <div class="about-img-badge-num">N°1</div>
+            <div class="about-img-badge-text">Construction<br>Routière Mada</div>
+          </div>
+        </div>
+
+        <div class="reveal-right">
+          <div class="section-tag">À Propos de Nous</div>
+          <h2 class="section-title" id="about-title">L'EXCELLENCE<br>EN INGÉNIERIE</h2>
+          <p class="section-subtitle">
+            Fondée en 1996 à Antananarivo, InfraBTP Madagascar est la référence nationale en construction et réhabilitation d'infrastructures routières. Nous combinons expertise technique, équipements modernes et engagement humain pour bâtir durablement.
+          </p>
+
+          <div class="about-highlight">
+            <div class="about-highlight-item reveal">
+              <div class="about-highlight-icon">🏅</div>
+              <div class="about-highlight-title">Certifiés ISO 9001</div>
+              <div class="about-highlight-text">Management qualité reconnu à l'international depuis 2008.</div>
+            </div>
+            <div class="about-highlight-item reveal" style="transition-delay:.1s">
+              <div class="about-highlight-icon">🌿</div>
+              <div class="about-highlight-title">Engagement RSE</div>
+              <div class="about-highlight-text">Construction durable, respect de l'environnement et des communautés.</div>
+            </div>
+            <div class="about-highlight-item reveal" style="transition-delay:.2s">
+              <div class="about-highlight-icon">👷</div>
+              <div class="about-highlight-title">+1 200 Collaborateurs</div>
+              <div class="about-highlight-text">Ingénieurs, techniciens et ouvriers qualifiés partout à Madagascar.</div>
+            </div>
+            <div class="about-highlight-item reveal" style="transition-delay:.3s">
+              <div class="about-highlight-icon">⚙️</div>
+              <div class="about-highlight-title">Parc matériel moderne</div>
+              <div class="about-highlight-text">300+ engins de chantier last generation pour toutes typologies de travaux.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:36px; display:flex; gap:16px; flex-wrap:wrap;">
+            <a href="#" class="btn btn-primary" onclick="downloadPDF(event)">⬇ Télécharger notre plaquette</a>
+            <a href="#contact" class="btn btn-outline">Prendre contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SERVICES
+  =========================================== -->
+  <section id="services" class="section" aria-labelledby="services-title">
+    <div class="container">
+      <div class="services-header">
+        <div>
+          <div class="section-tag">Nos Services</div>
+          <h2 class="section-title" id="services-title">CE QUE<br>NOUS FAISONS</h2>
+        </div>
+        <p class="section-subtitle reveal" style="max-width:380px">
+          Des routes nationales aux voiries urbaines, en passant par les ouvrages d'art, notre expertise couvre l'ensemble du génie civil routier.
+        </p>
+      </div>
+
+      <div class="services-grid">
+        <!-- Service 1 -->
+        <div class="service-card reveal">
+          <div class="service-num">01</div>
+          <div class="service-icon">🛣️</div>
+          <h3 class="service-title">Construction Routière</h3>
+          <p class="service-desc">Construction de routes nationales, régionales et provinciales avec les plus hauts standards de qualité. Revêtements bitumineux, graves-bitume, béton armé.</p>
+          <a href="#contact" class="service-link">En savoir plus →</a>
+        </div>
+        <!-- Service 2 -->
+        <div class="service-card reveal" style="transition-delay:.08s">
+          <div class="service-num">02</div>
+          <div class="service-icon">🌉</div>
+          <h3 class="service-title">Ponts & Ouvrages d'Art</h3>
+          <p class="service-desc">Conception, construction et réhabilitation de ponts, dalots, murs de soutènement et ouvrages hydrauliques en milieu rural et urbain.</p>
+          <a href="#contact" class="service-link">En savoir plus →</a>
+        </div>
+        <!-- Service 3 -->
+        <div class="service-card reveal" style="transition-delay:.16s">
+          <div class="service-num">03</div>
+          <div class="service-icon">🏙️</div>
+          <h3 class="service-title">Voirie Urbaine</h3>
+          <p class="service-desc">Aménagement et réhabilitation de voirie en milieu urbain : trottoirs, caniveaux, éclairage, signalisation horizontale et verticale.</p>
+          <a href="#contact" class="service-link">En savoir plus →</a>
+        </div>
+        <!-- Service 4 -->
+        <div class="service-card reveal" style="transition-delay:.24s">
+          <div class="service-num">04</div>
+          <div class="service-icon">⛏️</div>
+          <h3 class="service-title">Terrassement & VRD</h3>
+          <p class="service-desc">Déblai, remblai, compactage, réseaux divers (eau, assainissement, électricité). Préparation complète de plates-formes industrielles et logistiques.</p>
+          <a href="#contact" class="service-link">En savoir plus →</a>
+        </div>
+        <!-- Service 5 -->
+        <div class="service-card reveal" style="transition-delay:.32s">
+          <div class="service-num">05</div>
+          <div class="service-icon">🔍</div>
+          <h3 class="service-title">Bureau d'Études & Contrôle</h3>
+          <p class="service-desc">Études géotechniques, topographiques et hydrauliques. Maîtrise d'œuvre déléguée, contrôle qualité et supervision de chantiers tiers.</p>
+          <a href="#contact" class="service-link">En savoir plus →</a>
+        </div>
+        <!-- Service 6 -->
+        <div class="service-card reveal" style="transition-delay:.4s">
+          <div class="service-num">06</div>
+          <div class="service-icon">🌿</div>
+          <h3 class="service-title">Environnement & RSE</h3>
+          <p class="service-desc">Études d'impact environnemental, reboisement compensatoire, réhabilitation de sites, engagement communautaire et formation locale.</p>
+          <a href="#contact" class="service-link">En savoir plus →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       RÉALISATIONS
+  =========================================== -->
+  <section id="realisations" class="section" aria-labelledby="real-title">
+    <div class="container">
+      <div class="real-header reveal">
+        <div class="section-tag" style="color:var(--orange)">Portfolio</div>
+        <h2 class="section-title" id="real-title">NOS PLUS BELLES<br>RÉALISATIONS</h2>
+        <p class="section-subtitle" style="color:rgba(255,255,255,0.55); margin-top:12px;">
+          120+ projets livrés dans 18 régions. Chaque route est une promesse tenue.
+        </p>
+      </div>
+
+      <div class="real-filters reveal">
+        <button class="filter-btn active" data-filter="all">Tous</button>
+        <button class="filter-btn" data-filter="route">Routes</button>
+        <button class="filter-btn" data-filter="pont">Ponts</button>
+        <button class="filter-btn" data-filter="urbain">Voirie urbaine</button>
+        <button class="filter-btn" data-filter="terrassement">Terrassement</button>
+      </div>
+
+      <div class="real-grid">
+        <div class="real-card" data-cat="route" onclick="openModal('RN7 Antananarivo–Fianarantsoa','Route nationale 7 – Réhabilitation et renforcement de 312 km de chaussée bitumineuse, construction de 8 dalots et remise en état du drainage. Durée : 36 mois. Maître d\'ouvrage : Ministère des TP.','Haute Matsiatra & Amoron\'i Mania')">
+          <img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=900&q=80" alt="Route nationale 7" loading="lazy" />
+          <div class="real-card-overlay">
+            <div class="real-card-tag">Route nationale</div>
+            <div class="real-card-title">Réhabilitation RN7 – 312 km</div>
+            <div class="real-card-loc">📍 Antananarivo → Fianarantsoa</div>
+          </div>
+        </div>
+        <div class="real-card" data-cat="pont" onclick="openModal('Pont de Mangoky','Construction d\'un pont en béton précontraint de 180 m de portée sur le fleuve Mangoky. Fondations profondes, tablier mixte acier-béton. Durée : 24 mois.','Atsimo-Andrefana')">
+          <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80" alt="Pont de Mangoky" loading="lazy" />
+          <div class="real-card-overlay">
+            <div class="real-card-tag">Ouvrage d'art</div>
+            <div class="real-card-title">Pont sur le Mangoky</div>
+            <div class="real-card-loc">📍 Morombe, Atsimo-Andrefana</div>
+          </div>
+        </div>
+        <div class="real-card" data-cat="urbain" onclick="openModal('Voirie Analamahitsy','Aménagement de 14 km de voirie urbaine dans le quartier Analamahitsy : réfection de chaussée, trottoirs, caniveaux et éclairage LED. Maître d\'ouvrage : CUA.','Antananarivo')">
+          <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=600&q=80" alt="Voirie Analamahitsy" loading="lazy" />
+          <div class="real-card-overlay">
+            <div class="real-card-tag">Voirie urbaine</div>
+            <div class="real-card-title">Voirie Analamahitsy – 14 km</div>
+            <div class="real-card-loc">📍 Antananarivo, CUA</div>
+          </div>
+        </div>
+        <div class="real-card" data-cat="terrassement" onclick="openModal('Plateforme Logistique Toamasina','Terrassement et VRD de 42 ha de plateforme logistique portuaire. Remblayage, compactage, réseaux divers. Durée : 18 mois.','Atsinanana')">
+          <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600&q=80" alt="Plateforme Toamasina" loading="lazy" />
+          <div class="real-card-overlay">
+            <div class="real-card-tag">Terrassement VRD</div>
+            <div class="real-card-title">Plateforme Logistique Toamasina</div>
+            <div class="real-card-loc">📍 Toamasina, Port</div>
+          </div>
+        </div>
+        <div class="real-card" data-cat="route" onclick="openModal('RN13 Ihosy–Ambovombe','Construction de 220 km de route en zone aride. Traitement des sols à la chaux, drainage longitudinal, pose de glissières de sécurité.','Androy & Ihorombe')">
+          <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80" alt="RN13" loading="lazy" />
+          <div class="real-card-overlay">
+            <div class="real-card-tag">Route nationale</div>
+            <div class="real-card-title">Construction RN13 – 220 km</div>
+            <div class="real-card-loc">📍 Ihosy → Ambovombe</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="real-cta reveal">
+        <a href="#contact" class="btn btn-primary">Discutons de votre projet →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       COMPTEURS
+  =========================================== -->
+  <section id="counters" aria-label="Chiffres clés">
+    <div class="container">
+      <div class="counters-grid">
+        <div class="counter-item">
+          <div><span class="counter-val" data-target="450">0</span><span class="counter-unit">km</span></div>
+          <div class="counter-label">Routes construites</div>
+        </div>
+        <div class="counter-item">
+          <div><span class="counter-val" data-target="120">0</span><span class="counter-unit">+</span></div>
+          <div class="counter-label">Projets livrés</div>
+        </div>
+        <div class="counter-item">
+          <div><span class="counter-val" data-target="1200">0</span><span class="counter-unit">+</span></div>
+          <div class="counter-label">Collaborateurs</div>
+        </div>
+        <div class="counter-item">
+          <div><span class="counter-val" data-target="28">0</span><span class="counter-unit">ans</span></div>
+          <div class="counter-label">D'expérience</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       CARTE INTERACTIVE / SUIVI CHANTIER
+  =========================================== -->
+  <section id="map-section" class="section" aria-labelledby="map-title">
+    <div class="container">
+      <div class="map-wrap">
+        <div class="reveal-left">
+          <div class="section-tag">Chantiers en temps réel</div>
+          <h2 class="section-title" id="map-title">SUIVI<br>DES CHANTIERS</h2>
+          <p class="section-subtitle" style="margin-bottom:32px;">
+            Suivez l'avancement de nos chantiers actifs à travers Madagascar en temps quasi-réel.
+          </p>
+
+          <div class="map-chantiers">
+            <div class="chantier-item">
+              <div class="chantier-dot green"></div>
+              <div class="chantier-info">
+                <div class="chantier-name">RN7 – Ambatolampy Nord</div>
+                <div class="chantier-loc">📍 Vakinankaratra · En cours</div>
+                <div class="chantier-progress-bar">
+                  <div class="chantier-progress-fill" style="width:78%"></div>
+                </div>
+              </div>
+              <div class="chantier-pct">78%</div>
+            </div>
+            <div class="chantier-item">
+              <div class="chantier-dot orange"></div>
+              <div class="chantier-info">
+                <div class="chantier-name">Pont de Betsiboka</div>
+                <div class="chantier-loc">📍 Betsiboka · En cours</div>
+                <div class="chantier-progress-bar">
+                  <div class="chantier-progress-fill" style="width:45%"></div>
+                </div>
+              </div>
+              <div class="chantier-pct">45%</div>
+            </div>
+            <div class="chantier-item">
+              <div class="chantier-dot yellow"></div>
+              <div class="chantier-info">
+                <div class="chantier-name">Voirie Tamatave Centre</div>
+                <div class="chantier-loc">📍 Toamasina · Démarrage</div>
+                <div class="chantier-progress-bar">
+                  <div class="chantier-progress-fill" style="width:12%"></div>
+                </div>
+              </div>
+              <div class="chantier-pct">12%</div>
+            </div>
+            <div class="chantier-item">
+              <div class="chantier-dot green"></div>
+              <div class="chantier-info">
+                <div class="chantier-name">RN13 Ihosy Sud</div>
+                <div class="chantier-loc">📍 Ihorombe · En cours</div>
+                <div class="chantier-progress-bar">
+                  <div class="chantier-progress-fill" style="width:63%"></div>
+                </div>
+              </div>
+              <div class="chantier-pct">63%</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="chantier-map" class="reveal-right" role="region" aria-label="Carte des chantiers Madagascar"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       ACTUALITÉS
+  =========================================== -->
+  <section id="actualites" class="section" aria-labelledby="news-title">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:56px;flex-wrap:wrap;gap:20px">
+        <div class="reveal">
+          <div class="section-tag">Actualités</div>
+          <h2 class="section-title" id="news-title">DERNIÈRES<br>NOUVELLES</h2>
+        </div>
+        <a href="#" class="btn btn-outline reveal">Voir tout le blog →</a>
+      </div>
+
+      <div class="news-grid">
+        <div class="news-featured reveal-left">
+          <img
+            src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=900&q=80"
+            alt="Livraison RN7 Tronçon 3"
+            class="news-featured-img" loading="lazy"
+          />
+          <div class="news-featured-body">
+            <span class="news-tag">Réalisation</span>
+            <h3 class="news-title">Livraison officielle du tronçon 3 de la RN7 en présence du Ministre des Transports</h3>
+            <p class="news-excerpt">InfraBTP Madagascar a remis les clés du chantier le 15 novembre 2024 après 30 mois de travaux intensifs. Ce tronçon de 87 km désenclave 4 communes rurales et réduit le temps de trajet de 3 heures…</p>
+            <div class="news-meta">📅 15 novembre 2024 · ✍️ Équipe Communication</div>
+          </div>
+        </div>
+
+        <div class="news-sidebar reveal-right">
+          <div class="news-card">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200&q=70" alt="Partenariat BID" class="news-card-img" loading="lazy" />
+            <div>
+              <div class="news-card-tag">Partenariat</div>
+              <div class="news-card-title">Accord-cadre signé avec la Banque Islamique de Développement</div>
+              <div class="news-card-date">📅 3 décembre 2024</div>
+            </div>
+          </div>
+          <div class="news-card">
+            <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=200&q=70" alt="Recrutement" class="news-card-img" loading="lazy" />
+            <div>
+              <div class="news-card-tag">Recrutement</div>
+              <div class="news-card-title">InfraBTP recrute 120 jeunes ingénieurs et techniciens en 2025</div>
+              <div class="news-card-date">📅 18 novembre 2024</div>
+            </div>
+          </div>
+          <div class="news-card">
+            <img src="https://images.unsplash.com/photo-1567789884554-0b844b597180?w=200&q=70" alt="RSE" class="news-card-img" loading="lazy" />
+            <div>
+              <div class="news-card-tag">RSE</div>
+              <div class="news-card-title">Plantation de 10 000 arbres le long de la RN2 – bilan positif</div>
+              <div class="news-card-date">📅 5 octobre 2024</div>
+            </div>
+          </div>
+          <div class="news-card">
+            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=200&q=70" alt="Matériel" class="news-card-img" loading="lazy" />
+            <div>
+              <div class="news-card-tag">Équipement</div>
+              <div class="news-card-title">Acquisition de 24 nouveaux engins Caterpillar pour le parc 2025</div>
+              <div class="news-card-date">📅 20 septembre 2024</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       PARTENAIRES
+  =========================================== -->
+  <section id="partenaires" class="section" aria-labelledby="partners-title">
+    <div class="container">
+      <div class="partners-text reveal">
+        <div class="section-tag" style="justify-content:center">Nos partenaires</div>
+        <h2 class="section-title" id="partners-title">ILS NOUS<br>FONT CONFIANCE</h2>
+      </div>
+      <div class="partners-grid">
+        <div class="partner-logo reveal">Ministère TP</div>
+        <div class="partner-logo reveal" style="transition-delay:.06s">Banque Mondiale</div>
+        <div class="partner-logo reveal" style="transition-delay:.12s">Union Européenne</div>
+        <div class="partner-logo reveal" style="transition-delay:.18s">BID</div>
+        <div class="partner-logo reveal" style="transition-delay:.24s">JICA</div>
+        <div class="partner-logo reveal" style="transition-delay:.3s">AFD</div>
+        <div class="partner-logo reveal" style="transition-delay:.36s">BERD</div>
+        <div class="partner-logo reveal" style="transition-delay:.42s">BAD</div>
+        <div class="partner-logo reveal" style="transition-delay:.48s">MCC</div>
+        <div class="partner-logo reveal" style="transition-delay:.54s">Axian Group</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       CONTACT
+  =========================================== -->
+  <section id="contact" class="section" aria-labelledby="contact-title">
+    <div class="container">
+      <div class="section-tag reveal">Contactez-nous</div>
+      <h2 class="section-title reveal" id="contact-title">PARLONS DE<br>VOTRE PROJET</h2>
+
+      <div class="contact-grid" style="margin-top:52px">
+        <div class="reveal-left">
+          <p class="section-subtitle">
+            Vous avez un projet de construction, de réhabilitation ou d'aménagement ? Notre équipe d'experts vous répond sous 24h.
+          </p>
+          <div class="contact-infos">
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📍</div>
+              <div>
+                <div class="contact-info-label">Siège social</div>
+                <div class="contact-info-val">Lot II M 18, Ankorondrano – Antananarivo 101</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📞</div>
+              <div>
+                <div class="contact-info-label">Téléphone</div>
+                <div class="contact-info-val">+261 20 22 123 45 · +261 34 56 789 01</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">✉️</div>
+              <div>
+                <div class="contact-info-label">Email</div>
+                <div class="contact-info-val">contact@infrabtp-madagascar.mg</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">🕐</div>
+              <div>
+                <div class="contact-info-label">Horaires</div>
+                <div class="contact-info-val">Lun–Ven : 08h00–17h30 · Sam : 08h00–12h00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-form reveal-right" role="form" aria-label="Formulaire de contact">
+          <h3 style="font-family:'Barlow Condensed';font-size:1.5rem;font-weight:700;margin-bottom:28px">Envoyer un message</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contact-nom">Nom *</label>
+              <input type="text" id="contact-nom" placeholder="Jean Rakoto" required />
+            </div>
+            <div class="form-group">
+              <label for="contact-prenom">Prénom *</label>
+              <input type="text" id="contact-prenom" placeholder="Marie" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contact-email">Email *</label>
+              <input type="email" id="contact-email" placeholder="jean@example.mg" required />
+            </div>
+            <div class="form-group">
+              <label for="contact-tel">Téléphone</label>
+              <input type="tel" id="contact-tel" placeholder="+261 34 00 000 00" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="contact-sujet">Sujet</label>
+            <select id="contact-sujet">
+              <option value="">-- Choisir un sujet --</option>
+              <option>Construction routière</option>
+              <option>Pont / Ouvrage d'art</option>
+              <option>Voirie urbaine</option>
+              <option>Terrassement / VRD</option>
+              <option>Partenariat</option>
+              <option>Recrutement</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="contact-msg">Message *</label>
+            <textarea id="contact-msg" placeholder="Décrivez votre projet ou votre demande…" required></textarea>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" id="consent" required />
+            <label for="consent">J'accepte que mes données soient traitées par InfraBTP Madagascar conformément à sa politique de confidentialité.</label>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitForm(event)">
+            Envoyer le message 🚀
+          </button>
+          <div id="formSuccess">✅ Message envoyé ! Nous vous répondrons sous 24h.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       ESPACE PARTENAIRE
+  =========================================== -->
+  <section id="espace-partenaire" aria-labelledby="partner-title">
+    <div class="container">
+      <div class="partenaire-wrap">
+        <div class="partenaire-content reveal-left">
+          <div class="section-tag" style="color:var(--orange)">Espace réservé</div>
+          <h2 class="section-title" id="partner-title" style="color:var(--white)">ESPACE<br>PARTENAIRE</h2>
+          <p style="color:rgba(255,255,255,0.55);line-height:1.7;margin:20px 0 32px;font-size:1rem;">
+            Accédez à l'espace dédié à nos partenaires et sous-traitants : documents techniques, plans, rapports d'avancement et appels d'offres en cours.
+          </p>
+
+          <div class="pdf-download-section">
+            <div class="pdf-download-title">Documents disponibles en téléchargement libre</div>
+            <div class="pdf-download-list">
+              <div class="pdf-item" onclick="downloadPDF(event)">
+                <div class="pdf-item-icon">📄</div>
+                <div class="pdf-item-name">Plaquette InfraBTP Madagascar 2024</div>
+                <div class="pdf-item-dl">⬇ PDF</div>
+              </div>
+              <div class="pdf-item" onclick="downloadPDF(event)">
+                <div class="pdf-item-icon">📊</div>
+                <div class="pdf-item-name">Rapport RSE & Développement durable 2023</div>
+                <div class="pdf-item-dl">⬇ PDF</div>
+              </div>
+              <div class="pdf-item" onclick="downloadPDF(event)">
+                <div class="pdf-item-icon">🏗️</div>
+                <div class="pdf-item-name">Dossier de références techniques</div>
+                <div class="pdf-item-dl">⬇ PDF</div>
+              </div>
+              <div class="pdf-item" onclick="downloadPDF(event)">
+                <div class="pdf-item-icon">📋</div>
+                <div class="pdf-item-name">Cahier des charges types – Voirie</div>
+                <div class="pdf-item-dl">⬇ PDF</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="partenaire-login reveal-right">
+          <h3>🔐 Connexion Partenaire</h3>
+          <div class="form-group">
+            <label for="partner-id">Identifiant partenaire</label>
+            <input type="text" id="partner-id" placeholder="IBM-2024-XXXX" />
+          </div>
+          <div class="form-group">
+            <label for="partner-pwd">Mot de passe</label>
+            <input type="password" id="partner-pwd" placeholder="••••••••" />
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:16px" onclick="partnerLogin(event)">
+            Se connecter →
+          </button>
+          <div style="text-align:center">
+            <a href="#contact" style="font-size:.85rem;color:rgba(255,255,255,0.4);text-decoration:underline">Demander un accès partenaire</a>
+          </div>
+          <div id="partnerMsg" style="display:none;margin-top:16px;padding:12px;border-radius:8px;background:rgba(242,101,34,0.15);border:1px solid rgba(242,101,34,0.3);color:var(--orange-light);font-size:.85rem;text-align:center">
+            🔐 Accès réservé. Contactez-nous pour obtenir vos identifiants.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       FOOTER
+  =========================================== -->
+  <footer id="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#hero" class="nav-logo">
+            <div class="nav-logo-icon">IB</div>
+            <div>
+              <div class="nav-logo-text" style="color:var(--white)">InfraBTP</div>
+              <div class="nav-logo-sub">Madagascar</div>
+            </div>
+          </a>
+          <p>Leader national en construction et réhabilitation routière depuis 1996. Bâtir mieux, bâtir durable, bâtir Madagascar.</p>
+          <div class="footer-socials" aria-label="Réseaux sociaux">
+            <a href="#" class="social-btn" aria-label="Facebook">f</a>
+            <a href="#" class="social-btn" aria-label="LinkedIn">in</a>
+            <a href="#" class="social-btn" aria-label="YouTube">▶</a>
+            <a href="#" class="social-btn" aria-label="Twitter/X">𝕏</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col-title">Navigation</div>
+          <ul>
+            <li><a href="#hero">Accueil</a></li>
+            <li><a href="#about">À propos</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#realisations">Réalisations</a></li>
+            <li><a href="#actualites">Actualités</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col-title">Services</div>
+          <ul>
+            <li><a href="#services">Construction routière</a></li>
+            <li><a href="#services">Ponts & ouvrages</a></li>
+            <li><a href="#services">Voirie urbaine</a></li>
+            <li><a href="#services">Terrassement VRD</a></li>
+            <li><a href="#services">Bureau d'études</a></li>
+            <li><a href="#services">RSE & Environnement</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col-title">Contact</div>
+          <ul>
+            <li><a href="tel:+261202212345">+261 20 22 123 45</a></li>
+            <li><a href="mailto:contact@infrabtp-madagascar.mg">contact@infrabtp-madagascar.mg</a></li>
+            <li><a href="#">Ankorondrano, Antananarivo</a></li>
+            <li><a href="#espace-partenaire">Espace partenaire</a></li>
+            <li><a href="#" onclick="downloadPDF(event)">Télécharger la brochure</a></li>
+            <li><a href="#contact">Recrutement</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2024 <span>InfraBTP Madagascar</span>. Tous droits réservés.</div>
+        <div style="display:flex;gap:24px">
+          <a href="#" style="color:rgba(255,255,255,0.3);transition:color var(--transition)">Mentions légales</a>
+          <a href="#" style="color:rgba(255,255,255,0.3);transition:color var(--transition)">Confidentialité</a>
+          <a href="#" style="color:rgba(255,255,255,0.3);transition:color var(--transition)">Plan du site</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       CHATBOT
+  =========================================== -->
+  <button id="chatbot-btn" aria-label="Ouvrir le chatbot" onclick="toggleChat()">💬</button>
+
+  <div id="chatbot-window" role="dialog" aria-label="Assistant InfraBTP" aria-modal="true">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-header-name">Assistant InfraBTP</div>
+          <div class="chat-header-status">● En ligne – Répond en quelques secondes</div>
+        </div>
+      </div>
+      <button class="chat-close" onclick="toggleChat()" aria-label="Fermer le chat">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">
+        <div class="chat-bubble">👋 Bonjour ! Je suis l'assistant virtuel d'InfraBTP Madagascar. Comment puis-je vous aider ?</div>
+      </div>
+    </div>
+    <div class="chat-suggestions">
+      <button class="chat-suggestion" onclick="sendSuggestion('Vos services')">Vos services</button>
+      <button class="chat-suggestion" onclick="sendSuggestion('Contacter un expert')">Contacter un expert</button>
+      <button class="chat-suggestion" onclick="sendSuggestion('Demander un devis')">Devis</button>
+      <button class="chat-suggestion" onclick="sendSuggestion('Chantiers en cours')">Chantiers actifs</button>
+    </div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chatInput" type="text" placeholder="Votre message…" onkeypress="chatKeyPress(event)" />
+      <button class="chat-send" onclick="sendChat()" aria-label="Envoyer">→</button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL RÉALISATION
+  =========================================== -->
+  <div class="modal-overlay" id="realModal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onclick="closeModal(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModalBtn()" aria-label="Fermer">✕</button>
+      <div class="section-tag" style="margin-bottom:8px">Fiche projet</div>
+      <h3 id="modal-title" class="section-title" style="font-size:1.8rem;margin-bottom:12px"></h3>
+      <p id="modal-desc" style="color:var(--text-muted);line-height:1.7;margin-bottom:20px;font-size:.95rem"></p>
+      <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.85rem">
+        📍 <span id="modal-loc"></span>
+      </div>
+      <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+        <a href="#contact" class="btn btn-primary" onclick="closeModalBtn()">Projet similaire ? Contactez-nous</a>
+        <button class="btn btn-outline" onclick="closeModalBtn()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT
+  =========================================== -->
+  <script>
+  /* ============================================
+     DARK MODE
+  ============================================ */
+  const toggle = document.getElementById('darkToggle');
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  toggle.textContent = saved === 'dark' ? '☀️' : '🌙';
+
+  toggle.addEventListener('click', () => {
+    const curr = document.documentElement.getAttribute('data-theme');
+    const next = curr === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+
+  /* ============================================
+     SCROLL PROGRESS BAR
+  ============================================ */
+  const progressBar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+  }, { passive: true });
+
+  /* ============================================
+     NAVBAR SCROLL
+  ============================================ */
+  const navbar = document.getElementById('navbar');
+  const backBtn = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      navbar.classList.add('scrolled');
+      backBtn.classList.add('visible');
+    } else {
+      navbar.classList.remove('scrolled');
+      backBtn.classList.remove('visible');
+    }
+  }, { passive: true });
+  backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  /* ============================================
+     HAMBURGER MENU
+  ============================================ */
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', isOpen);
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+    });
+  });
+
+  /* ============================================
+     ACTIVE NAV LINKS ON SCROLL
+  ============================================ */
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  /* ============================================
+     REVEAL ON SCROLL
+  ============================================ */
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => revealObserver.observe(el));
+
+  /* ============================================
+     DYNAMIC COUNTERS
+  ============================================ */
+  function animateCounter(el, target, duration = 1800) {
+    let start = 0;
+    const step = target / (duration / 16);
+    const tick = () => {
+      start = Math.min(start + step, target);
+      el.textContent = Math.floor(start).toLocaleString('fr-FR');
+      if (start < target) requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  const counterSection = document.getElementById('counters');
+  let countersStarted = false;
+  new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !countersStarted) {
+      countersStarted = true;
+      document.querySelectorAll('.counter-val[data-target]').forEach(el => {
+        animateCounter(el, parseInt(el.dataset.target));
+      });
+    }
+  }, { threshold: 0.3 }).observe(counterSection);
+
+  // Hero stat counters too
+  const heroSection = document.getElementById('hero');
+  let heroCountersStarted = false;
+  new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !heroCountersStarted) {
+      heroCountersStarted = true;
+      document.querySelectorAll('.hero-stat-val[data-count]').forEach(el => {
+        animateCounter(el, parseInt(el.dataset.count), 1400);
+      });
+    }
+  }, { threshold: 0.3 }).observe(heroSection);
+
+  /* ============================================
+     LEAFLET MAP
+  ============================================ */
+  const chantiers = [
+    { lat: -19.82, lng: 47.51, name: 'RN7 – Ambatolampy Nord', pct: 78, status: 'green' },
+    { lat: -16.55, lng: 46.89, name: 'Pont de Betsiboka', pct: 45, status: 'orange' },
+    { lat: -18.15, lng: 49.40, name: 'Voirie Tamatave Centre', pct: 12, status: 'yellow' },
+    { lat: -22.41, lng: 46.12, name: 'RN13 Ihosy Sud', pct: 63, status: 'orange' },
+  ];
+
+  const colorMap = { green: '#22C55E', orange: '#F26522', yellow: '#EAB308' };
+
+  function initMap() {
+    const map = L.map('chantier-map', {
+      center: [-19.5, 46.8], zoom: 6, zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+
+    chantiers.forEach(c => {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:14px;height:14px;border-radius:50%;background:${colorMap[c.status]};border:2px solid white;box-shadow:0 0 8px ${colorMap[c.status]}"></div>`,
+        iconSize: [14, 14], iconAnchor: [7, 7]
+      });
+      L.marker([c.lat, c.lng], { icon })
+        .addTo(map)
+        .bindPopup(`<b>${c.name}</b><br>Avancement : <b>${c.pct}%</b>`, {
+          closeButton: true, className: 'custom-popup'
+        });
+    });
+
+    // Keep map theme in sync
+    const updateMapTheme = () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    };
+    toggle.addEventListener('click', updateMapTheme);
+  }
+
+  // Init map when visible
+  const mapEl = document.getElementById('chantier-map');
+  new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { initMap(); mapObserver.disconnect(); }
+  }, { threshold: 0.1 }).observe(mapEl);
+  const mapObserver = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { initMap(); mapObserver.disconnect(); }
+  }, { threshold: 0.1 });
+  mapObserver.observe(mapEl);
+
+  /* ============================================
+     FILTER REALISATIONS
+  ============================================ */
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.real-card').forEach(card => {
+        const match = filter === 'all' || card.dataset.cat === filter;
+        card.style.display = match ? 'block' : 'none';
+        card.style.opacity = match ? '1' : '0';
+      });
+    });
+  });
+
+  /* ============================================
+     MODAL REALISATIONS
+  ============================================ */
+  function openModal(title, desc, loc) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').textContent = desc;
+    document.getElementById('modal-loc').textContent = loc;
+    document.getElementById('realModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModalBtn() {
+    document.getElementById('realModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function closeModal(e) { if (e.target === document.getElementById('realModal')) closeModalBtn(); }
+
+  /* ============================================
+     FORM SUBMIT
+  ============================================ */
+  function submitForm(e) {
+    e.preventDefault();
+    const nom = document.getElementById('contact-nom').value;
+    const email = document.getElementById('contact-email').value;
+    const msg = document.getElementById('contact-msg').value;
+    const consent = document.getElementById('consent').checked;
+
+    if (!nom || !email || !msg) { alert('Merci de remplir tous les champs obligatoires.'); return; }
+    if (!consent) { alert('Veuillez accepter notre politique de confidentialité.'); return; }
+
+    const btn = e.target;
+    btn.textContent = '⏳ Envoi en cours…'; btn.disabled = true;
+    setTimeout(() => {
+      document.getElementById('formSuccess').style.display = 'block';
+      btn.textContent = '✅ Message envoyé !';
+    }, 1200);
+  }
+
+  /* ============================================
+     PARTNER LOGIN
+  ============================================ */
+  function partnerLogin(e) {
+    e.preventDefault();
+    document.getElementById('partnerMsg').style.display = 'block';
+  }
+
+  /* ============================================
+     PDF DOWNLOAD (DEMO)
+  ============================================ */
+  function downloadPDF(e) {
+    e.preventDefault();
+    // Demo: Generate a simple PDF content as a blob
+    const content = `InfraBTP Madagascar – Brochure Entreprise 2024\n\n` +
+      `Leader en construction routière à Madagascar depuis 1996.\n` +
+      `450 km de routes construites | 120 projets | 1200 collaborateurs\n\n` +
+      `Contact : contact@infrabtp-madagascar.mg\n` +
+      `Tél : +261 20 22 123 45\n` +
+      `Siège : Ankorondrano, Antananarivo 101`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'InfraBTP_Madagascar_Brochure_2024.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ============================================
+     CHATBOT
+  ============================================ */
+  const CHAT_RESPONSES = {
+    'services': '🛣️ Nous proposons : Construction routière, Ponts & ouvrages d\'art, Voirie urbaine, Terrassement VRD, Bureau d\'études et RSE. Quel service vous intéresse ?',
+    'contacter un expert': '📞 Contactez notre équipe au +261 20 22 123 45 ou via notre formulaire sur la page Contact. Nous vous répondons sous 24h !',
+    'demander un devis': '📋 Pour un devis personnalisé, rendez-vous dans la section Contact de notre site. Décrivez votre projet et notre équipe vous répondra rapidement.',
+    'chantiers en cours': '📍 Nous avons actuellement 4 chantiers actifs :\n• RN7 Ambatolampy : 78%\n• Pont Betsiboka : 45%\n• Voirie Tamatave : 12%\n• RN13 Ihosy : 63%',
+    'recrutement': '👷 Nous recrutons régulièrement des ingénieurs, techniciens et ouvriers qualifiés. Envoyez votre CV à rh@infrabtp-madagascar.mg',
+    'default': '🤔 Merci pour votre message ! Pour une réponse précise, contactez notre équipe via le formulaire ou appelez le +261 20 22 123 45. Nous sommes disponibles Lun–Ven 8h–17h30.'
+  };
+
+  function toggleChat() {
+    const win = document.getElementById('chatbot-window');
+    win.classList.toggle('open');
+  }
+
+  function sendSuggestion(text) {
+    document.getElementById('chatInput').value = text;
+    sendChat();
+  }
+
+  function chatKeyPress(e) { if (e.key === 'Enter') sendChat(); }
+
+  function sendChat() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    appendMsg(text, 'user');
+    input.value = '';
+    setTimeout(() => {
+      const key = text.toLowerCase();
+      const reply = Object.entries(CHAT_RESPONSES).find(([k]) => k !== 'default' && key.includes(k));
+      appendMsg(reply ? reply[1] : CHAT_RESPONSES.default, 'bot');
+    }, 700);
+  }
+
+  function appendMsg(text, role) {
+    const msgs = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.innerHTML = `<div class="chat-bubble">${text.replace(/\n/g, '<br>')}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  /* ============================================
+     KEYBOARD ACCESSIBILITY
+  ============================================ */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModalBtn();
+      document.getElementById('chatbot-window').classList.remove('open');
+    }
+  });
+  </script>
+</body>
+</html>
